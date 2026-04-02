@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Plus, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from "@/components/ui/select"
-import { CreateMenuItemDTO, MENU_CATEGORIES } from "@/lib/types/menu"
+import { CreateMenuItemDTO, MENU_CATEGORIES, MenuItem } from "@/lib/types/menu"
 
 interface FormErrors {
   name?: string
@@ -23,31 +23,53 @@ interface FormErrors {
 interface AddMenuItemModalProps {
   onSuccess?: () => void
   isAdmin?: boolean
+  mode?: "create" | "edit"
+  item?: MenuItem
+  trigger?: React.ReactNode
 }
 
-/**
- * Modal component for adding new menu items
- * Implements proper form validation and error handling
- * 
- * Features:
- * - Form validation with real-time error display
- * - Category selection dropdown
- * - Image URL preview
- * - Loading state during submission
- * - Success/error notifications
- */
-export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModalProps) {
+const defaultFormData: CreateMenuItemDTO = {
+  name: "",
+  description: "",
+  price: 0,
+  category: "Espresso",
+  imageUrl: "",
+}
+
+function getFormDataFromItem(item?: MenuItem): CreateMenuItemDTO {
+  if (!item) {
+    return defaultFormData
+  }
+
+  return {
+    name: item.name,
+    description: item.description,
+    price: item.price,
+    category: item.category,
+    imageUrl: item.image,
+  }
+}
+
+export function AddMenuItemModal({
+  onSuccess,
+  isAdmin = false,
+  mode = "create",
+  item,
+  trigger,
+}: AddMenuItemModalProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [formData, setFormData] = useState<CreateMenuItemDTO>({
-    name: "",
-    description: "",
-    price: 0,
-    category: "Espresso",
-    imageUrl: "",
-  })
+  const [formData, setFormData] = useState<CreateMenuItemDTO>(getFormDataFromItem(item))
+
+  useEffect(() => {
+    if (open) {
+      setFormData(getFormDataFromItem(item))
+      setErrors({})
+      setSuccessMessage(null)
+    }
+  }, [item, open])
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -57,7 +79,7 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
       ...prev,
       [name]: name === "price" ? parseFloat(value) || 0 : value,
     }))
-    // Clear error for this field when user starts typing
+
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }))
     }
@@ -68,6 +90,7 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
       ...prev,
       category: value as typeof formData.category,
     }))
+
     if (errors.category) {
       setErrors((prev) => ({ ...prev, category: undefined }))
     }
@@ -123,8 +146,8 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
     setSuccessMessage(null)
 
     try {
-      const response = await fetch("/api/menu", {
-        method: "POST",
+      const response = await fetch(mode === "edit" && item ? `/api/menu/${item.id}` : "/api/menu", {
+        method: mode === "edit" ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -141,29 +164,33 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
           }
           setErrors(fieldErrors)
         } else {
-          setErrors({ general: result.message || "Failed to add menu item" })
+          setErrors({
+            general: result.message || (mode === "edit" ? "Failed to update menu item" : "Failed to add menu item"),
+          })
         }
       } else {
-        setSuccessMessage(`${result.data.name} added successfully!`)
-        setFormData({
-          name: "",
-          description: "",
-          price: 0,
-          category: "Espresso",
-          imageUrl: "",
-        })
+        setSuccessMessage(
+          mode === "edit"
+            ? `${result.data.name} updated successfully!`
+            : `${result.data.name} added successfully!`
+        )
         setErrors({})
 
-        // Close modal after 2 seconds
+        if (mode === "create") {
+          setFormData(defaultFormData)
+        }
+
         setTimeout(() => {
           setOpen(false)
           onSuccess?.()
-        }, 2000)
+        }, 1200)
       }
     } catch (error) {
       setErrors({
         general:
-          error instanceof Error ? error.message : "An error occurred while adding the menu item",
+          error instanceof Error
+            ? error.message
+            : `An error occurred while ${mode === "edit" ? "updating" : "adding"} the menu item`,
       })
     } finally {
       setIsLoading(false)
@@ -174,24 +201,32 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
     return null
   }
 
+  const title = mode === "edit" ? "Edit Menu Item" : "Add New Menu Item"
+  const description =
+    mode === "edit"
+      ? "Update the details for this menu item"
+      : "Fill in the details to add a new item to your menu"
+  const submitLabel = mode === "edit" ? "Save Changes" : "Add Item"
+  const submitLoadingLabel = mode === "edit" ? "Saving..." : "Adding..."
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Add Menu Item
-        </Button>
+        {trigger || (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Menu Item
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Menu Item</DialogTitle>
-          <DialogDescription>
-            Fill in the details to add a new item to your menu
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -210,7 +245,6 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
             </Alert>
           )}
 
-          {/* Name Field */}
           <div className="space-y-2">
             <Label htmlFor="name">Item Name *</Label>
             <Input
@@ -222,12 +256,9 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
               disabled={isLoading}
               className={errors.name ? "border-red-500" : ""}
             />
-            {errors.name && (
-              <p className="text-sm text-red-500">{errors.name}</p>
-            )}
+            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
 
-          {/* Description Field */}
           <div className="space-y-2">
             <Label htmlFor="description">Description *</Label>
             <Textarea
@@ -240,12 +271,9 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
               rows={3}
               className={errors.description ? "border-red-500" : ""}
             />
-            {errors.description && (
-              <p className="text-sm text-red-500">{errors.description}</p>
-            )}
+            {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
           </div>
 
-          {/* Price Field */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="price">Price (₹) *</Label>
@@ -262,12 +290,9 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
                 disabled={isLoading}
                 className={errors.price ? "border-red-500" : ""}
               />
-              {errors.price && (
-                <p className="text-sm text-red-500">{errors.price}</p>
-              )}
+              {errors.price && <p className="text-sm text-red-500">{errors.price}</p>}
             </div>
 
-            {/* Category Field */}
             <div className="space-y-2">
               <Label htmlFor="category">Category *</Label>
               <Select
@@ -286,13 +311,10 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
                   ))}
                 </SelectContent>
               </Select>
-              {errors.category && (
-                <p className="text-sm text-red-500">{errors.category}</p>
-              )}
+              {errors.category && <p className="text-sm text-red-500">{errors.category}</p>}
             </div>
           </div>
 
-          {/* Image URL Field */}
           <div className="space-y-2">
             <Label htmlFor="imageUrl">Image URL *</Label>
             <Input
@@ -305,11 +327,8 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
               disabled={isLoading}
               className={errors.imageUrl ? "border-red-500" : ""}
             />
-            {errors.imageUrl && (
-              <p className="text-sm text-red-500">{errors.imageUrl}</p>
-            )}
+            {errors.imageUrl && <p className="text-sm text-red-500">{errors.imageUrl}</p>}
 
-            {/* Image Preview */}
             {formData.imageUrl && !errors.imageUrl && (
               <div className="mt-2 border rounded overflow-hidden">
                 <img
@@ -327,7 +346,6 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
             )}
           </div>
 
-          {/* Submit Button */}
           <div className="flex gap-2 justify-end pt-4">
             <Button
               type="button"
@@ -339,7 +357,7 @@ export function AddMenuItemModal({ onSuccess, isAdmin = false }: AddMenuItemModa
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isLoading ? "Adding..." : "Add Item"}
+              {isLoading ? submitLoadingLabel : submitLabel}
             </Button>
           </div>
         </form>

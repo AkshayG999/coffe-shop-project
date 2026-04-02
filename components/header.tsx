@@ -106,8 +106,11 @@ export function Header() {
                 </Button>
               </>
             )}
-            <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Link href="#menu">Order Now</Link>
+            <Button
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              onClick={() => scrollToSection("menu")}
+            >
+              Order Now
             </Button>
           </div>
 
@@ -206,13 +209,13 @@ export function Header() {
                 </div>
               )}
               <Button
-                asChild
                 className="w-full mt-2 bg-accent hover:bg-accent/90 text-accent-foreground"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  scrollToSection("menu")
+                  setIsOpen(false)
+                }}
               >
-                <Link href="#menu">
-                  Order Now
-                </Link>
+                Order Now
               </Button>
             </div>
           </div>

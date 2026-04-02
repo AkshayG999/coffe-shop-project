@@ -1,13 +1,12 @@
 "use client"
 
 import Image from "next/image"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import { useScroll } from "@/contexts/scroll-context"
 
 export function HeroSection() {
-  const { heroRef } = useScroll()
+  const { heroRef, scrollToSection } = useScroll()
   return (
     <section ref={heroRef} id="home" className="relative min-h-screen flex items-center">
       {/* Background Image */}
@@ -38,23 +37,23 @@ export function HeroSection() {
             Every cup tells a story of carefully sourced beans and expert brewing.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            <Button 
-              asChild 
-              size="lg" 
+            <Button
+              size="lg"
               className="bg-card text-foreground hover:bg-card/90 font-medium"
+              onClick={() => scrollToSection("menu")}
             >
-              <Link href="#menu">
+              <>
                 Explore Menu
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+              </>
             </Button>
-            <Button 
-              asChild 
-              size="lg" 
-              variant="outline" 
+            <Button
+              size="lg"
+              variant="outline"
               className="border-card text-black hover:bg-card/10 font-medium"
+              onClick={() => scrollToSection("about")}
             >
-              <Link href="#about">Our Story</Link>
+              Our Story
             </Button>
           </div>
         </div>

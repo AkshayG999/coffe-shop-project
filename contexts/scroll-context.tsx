@@ -1,7 +1,8 @@
 "use client"
 
-import { useRef, useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { createContext, useContext, ReactNode } from "react"
+import { usePathname, useRouter } from "next/navigation"
 
 /**
  * Scroll Context
@@ -10,56 +11,95 @@ import { createContext, useContext, ReactNode } from "react"
  * Automatically updates URL hash based on visible section
  */
 
-type ScrollTarget = "menu" | "home" | "about" | "contact"
+export type ScrollTarget = "menu" | "home" | "about" | "contact"
 
 type ScrollContextType = {
-  menuRef: React.RefObject<HTMLElement>
-  heroRef: React.RefObject<HTMLElement>
-  aboutRef: React.RefObject<HTMLElement>
-  contactRef: React.RefObject<HTMLElement>
+  menuRef: React.RefObject<HTMLElement | null>
+  heroRef: React.RefObject<HTMLElement | null>
+  aboutRef: React.RefObject<HTMLElement | null>
+  contactRef: React.RefObject<HTMLElement | null>
   scrollToSection: (target: ScrollTarget) => void
 }
 
 const ScrollContext = createContext<ScrollContextType | undefined>(undefined)
 
+function isScrollTarget(value: string): value is ScrollTarget {
+  return value === "home" || value === "about" || value === "menu" || value === "contact"
+}
+
 export function ScrollProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+  const router = useRouter()
   const menuRef = useRef<HTMLElement>(null)
   const heroRef = useRef<HTMLElement>(null)
   const aboutRef = useRef<HTMLElement>(null)
   const contactRef = useRef<HTMLElement>(null)
 
+  const getSectionRefs = (): Record<ScrollTarget, React.RefObject<HTMLElement | null>> => ({
+    menu: menuRef,
+    home: heroRef,
+    about: aboutRef,
+    contact: contactRef,
+  })
+
+  const scrollWithinPage = (target: ScrollTarget, historyMode: "push" | "replace" | "none" = "push") => {
+    const refs = getSectionRefs()
+    const ref = refs[target]
+
+    if (!ref.current) {
+      return false
+    }
+
+    ref.current.scrollIntoView({ behavior: "smooth", block: "start" })
+
+    if (historyMode === "push") {
+      window.history.pushState(null, "", `/#${target}`)
+    } else if (historyMode === "replace") {
+      window.history.replaceState(null, "", `/#${target}`)
+    }
+
+    return true
+  }
+
   const scrollToSection = (target: ScrollTarget) => {
-    const refs: Record<ScrollTarget, React.RefObject<HTMLElement>> = {
+    if (pathname !== "/") {
+      router.push(`/#${target}`)
+      return
+    }
+
+    const didScroll = scrollWithinPage(target)
+    if (!didScroll) {
+      router.push(`/#${target}`)
+    }
+  }
+
+  useEffect(() => {
+    if (pathname !== "/") {
+      return
+    }
+
+    const hash = window.location.hash.replace("#", "")
+    if (!isScrollTarget(hash)) {
+      return
+    }
+
+    scrollWithinPage(hash, "none")
+  }, [pathname])
+
+  useEffect(() => {
+    const refs: Record<ScrollTarget, React.RefObject<HTMLElement | null>> = {
       menu: menuRef,
       home: heroRef,
       about: aboutRef,
       contact: contactRef,
     }
-
-    const ref = refs[target]
-    if (ref?.current) {
-      // Use scrollIntoView with smooth behavior
-      ref.current.scrollIntoView({ behavior: "smooth", block: "start" })
-      // Update URL hash
-      window.history.pushState(null, "", `#${target}`)
-    }
-  }
-
-  // Set up IntersectionObserver to update hash based on visible section
-  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find which section is most visible
-        let mostVisibleEntry = entries[0]
-        
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            mostVisibleEntry = entry
-            // Update hash only for intersecting entries
             const target = entry.target.getAttribute("data-scroll-target")
-            if (target) {
-              // Use replaceState to not create history entries while scrolling
-              window.history.replaceState(null, "", `#${target}`)
+            if (target && isScrollTarget(target)) {
+              window.history.replaceState(null, "", `/#${target}`)
             }
             break
           }
@@ -71,7 +111,6 @@ export function ScrollProvider({ children }: { children: ReactNode }) {
       }
     )
 
-    // Observe all sections
     const sections = [
       { ref: heroRef, id: "home" },
       { ref: menuRef, id: "menu" },
@@ -88,7 +127,7 @@ export function ScrollProvider({ children }: { children: ReactNode }) {
 
     return () => {
       sections.forEach(({ ref }) => {
-        if (ref?.current) {
+        if (ref.current) {
           observer.unobserve(ref.current)
         }
       })

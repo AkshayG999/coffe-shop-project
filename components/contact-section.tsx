@@ -11,7 +11,7 @@ const contactInfo = [
   {
     icon: MapPin,
     title: "Location",
-    details: ["42, MG Road, Connaught Place", "New Delhi - 110001, India"],
+    details: ["Oppsite Fergusson College,FC Road", "Pune-411004, Maharashtra"],
   },
   {
     icon: Phone,
@@ -39,32 +39,15 @@ export function ContactSection() {
     e.preventDefault()
     setIsSubmitting(true)
     
-    try {
-      const response = await fetch('/api/contact.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
-
-      const result = await response.json()
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to send message')
-      }
-
-      setIsSubmitting(false)
-      setSubmitted(true)
-      setFormData({ name: "", email: "", message: "" })
-      
-      // Reset submitted state after 3 seconds
-      setTimeout(() => setSubmitted(false), 3000)
-    } catch (error) {
-      console.error('Contact form error:', error)
-      alert(error instanceof Error ? error.message : 'Failed to send message')
-      setIsSubmitting(false)
-    }
+    // Simulate form submission
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    setIsSubmitting(false)
+    setSubmitted(true)
+    setFormData({ name: "", email: "", message: "" })
+    
+    // Reset submitted state after 3 seconds
+    setTimeout(() => setSubmitted(false), 3000)
   }
 
   return (

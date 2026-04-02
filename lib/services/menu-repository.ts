@@ -11,7 +11,7 @@ export interface IMenuItemRepository {
   getById(id: number): MenuItem | null
   getAll(isAvailableOnly?: boolean): MenuItem[]
   getByCategory(category: string, isAvailableOnly?: boolean): MenuItem[]
-  update(id: number, item: Partial<CreateMenuItemDTO>): boolean
+  update(id: number, item: Partial<CreateMenuItemDTO> & { isAvailable?: boolean }): boolean
   delete(id: number): boolean
   toggleAvailability(id: number): boolean
 }
@@ -107,7 +107,7 @@ export class MenuItemRepository implements IMenuItemRepository {
   /**
    * Updates a menu item
    */
-  update(id: number, item: Partial<CreateMenuItemDTO>): boolean {
+  update(id: number, item: Partial<CreateMenuItemDTO> & { isAvailable?: boolean }): boolean {
     try {
       const updates: string[] = []
       const values: any[] = []
@@ -131,6 +131,10 @@ export class MenuItemRepository implements IMenuItemRepository {
       if (item.imageUrl !== undefined) {
         updates.push('image_url = ?')
         values.push(item.imageUrl)
+      }
+      if (item.isAvailable !== undefined) {
+        updates.push('is_available = ?')
+        values.push(item.isAvailable ? 1 : 0)
       }
 
       if (updates.length === 0) return false

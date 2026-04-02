@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert } from "@/components/ui/alert"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react"
 
 interface LoginModalProps {
   isOpen: boolean
@@ -19,6 +19,7 @@ export function LoginModal({ isOpen, onClose, onSignupClick }: LoginModalProps) 
   const { login, isLoading, error, clearError } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,6 +37,7 @@ export function LoginModal({ isOpen, onClose, onSignupClick }: LoginModalProps) 
     clearError()
     setEmail("")
     setPassword("")
+    setShowPassword(false)
     onClose()
   }
 
@@ -76,16 +78,28 @@ export function LoginModal({ isOpen, onClose, onSignupClick }: LoginModalProps) 
             <Label htmlFor="password" className="text-foreground">
               Password
             </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-background border-border pr-10 text-foreground placeholder:text-muted-foreground"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                disabled={isLoading}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           <Button

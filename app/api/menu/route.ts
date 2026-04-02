@@ -12,13 +12,14 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const category = searchParams.get('category')
+    const includeUnavailable = searchParams.get('includeUnavailable') === 'true'
 
     const db = getDatabase()
     const repository = new MenuItemRepository(db)
 
     const items = category && category !== 'all' 
-      ? repository.getByCategory(category, true)
-      : repository.getAll(true)
+      ? repository.getByCategory(category, !includeUnavailable)
+      : repository.getAll(!includeUnavailable)
 
     const formattedItems = items.map((item) => ({
       id: item.id,
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
       price: item.price,
       category: item.category,
       image: item.image,
+      isAvailable: item.isAvailable,
     }))
 
     return NextResponse.json(
@@ -100,117 +102,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<MenuItemR
       {
         success: false,
         message: `Error creating menu item: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      },
-      { status: 500 }
-    )
-  }
-}
-
-/**
- * PUT /api/menu/[id]
- * Updates an existing menu item
- */
-export async function PUT(request: NextRequest): Promise<NextResponse<MenuItemResponse>> {
-  try {
-    const url = new URL(request.url)
-    const id = parseInt(url.pathname.split('/').pop() || '0')
-
-    if (!id || isNaN(id)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Invalid menu item ID',
-        },
-        { status: 400 }
-      )
-    }
-
-    const body: Partial<CreateMenuItemDTO> = await request.json()
-
-    const db = getDatabase()
-    const repository = new MenuItemRepository(db)
-
-    const success = repository.update(id, body)
-
-    if (!success) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Menu item not found',
-        },
-        { status: 404 }
-      )
-    }
-
-    const updatedItem = repository.getById(id)
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: updatedItem || undefined,
-        message: 'Menu item updated successfully',
-      },
-      { status: 200 }
-    )
-  } catch (error) {
-    console.error('Menu update error:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        message: `Error updating menu item: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      },
-      { status: 500 }
-    )
-  }
-}
-
-/**
- * DELETE /api/menu/[id]
- * Deletes a menu item
- */
-export async function DELETE(request: NextRequest): Promise<NextResponse<MenuItemResponse>> {
-  try {
-    const url = new URL(request.url)
-    const id = parseInt(url.pathname.split('/').pop() || '0')
-
-    if (!id || isNaN(id)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Invalid menu item ID',
-        },
-        { status: 400 }
-      )
-    }
-
-    const db = getDatabase()
-    const repository = new MenuItemRepository(db)
-
-    const success = repository.delete(id)
-
-    if (!success) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Menu item not found',
-        },
-        { status: 404 }
-      )
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Menu item deleted successfully',
-      },
-      { status: 200 }
-    )
-  } catch (error) {
-    console.error('Menu deletion error:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        message: `Error deleting menu item: ${error instanceof Error ? error.message : 'Unknown error'}`,
       },
       { status: 500 }
     )

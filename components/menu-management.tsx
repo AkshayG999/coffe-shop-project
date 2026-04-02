@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Trash2, Edit2, Eye, EyeOff, Loader2, AlertCircle, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { MenuItem } from "@/lib/types/menu"
 import { AddMenuItemModal } from "./add-menu-item-modal"
@@ -13,29 +13,19 @@ interface MenuManagementPageProps {
   isAdmin?: boolean
 }
 
-/**
- * Admin Menu Management Component
- * Allows viewing, editing, and deleting menu items
- * 
- * Responsibilities:
- * - Display all menu items in a table
- * - Handle item deletion with confirmation
- * - Toggle item availability
- * - Refresh menu list
- * - Error handling and loading states
- */
 export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<MenuItem | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const fetchMenuItems = async () => {
     setIsLoading(true)
     setError(null)
+
     try {
-      const response = await fetch("/api/menu?category=all")
+      const response = await fetch("/api/menu?category=all&includeUnavailable=true")
       const data = await response.json()
 
       if (data.success) {
@@ -47,7 +37,7 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
             price: item.price,
             category: item.category,
             image: item.image,
-            isAvailable: item.is_available !== false,
+            isAvailable: item.isAvailable !== false,
           }))
         )
       } else {
@@ -65,45 +55,61 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
   }, [])
 
   const handleToggleAvailability = async (itemId: number) => {
-    try {
-      const item = menuItems.find((i) => i.id === itemId)
-      if (!item) return
+    const item = menuItems.find((entry) => entry.id === itemId)
+    if (!item) {
+      return
+    }
 
+    setError(null)
+
+    try {
       const response = await fetch(`/api/menu/${itemId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isAvailable: !item.isAvailable }),
       })
 
-      if (response.ok) {
-        setMenuItems((prev) =>
-          prev.map((i) =>
-            i.id === itemId ? { ...i, isAvailable: !i.isAvailable } : i
-          )
-        )
-      } else {
-        setError("Failed to update item availability")
+      const result = await response.json()
+
+      if (!response.ok) {
+        setError(result.message || "Failed to update item availability")
+        return
       }
+
+      setMenuItems((prev) =>
+        prev.map((entry) =>
+          entry.id === itemId
+            ? { ...entry, isAvailable: result.data?.isAvailable ?? !entry.isAvailable }
+            : entry
+        )
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     }
   }
 
   const handleDeleteItem = async () => {
-    if (deleteConfirm === null) return
+    if (!deleteConfirm) {
+      return
+    }
 
     setIsDeleting(true)
+    setError(null)
+
     try {
-      const response = await fetch(`/api/menu/${deleteConfirm}`, {
+      const response = await fetch(`/api/menu/${deleteConfirm.id}`, {
         method: "DELETE",
       })
 
-      if (response.ok) {
-        setMenuItems((prev) => prev.filter((i) => i.id !== deleteConfirm))
-        setDeleteConfirm(null)
-      } else {
-        setError("Failed to delete menu item")
+      const result = await response.json()
+
+      if (!response.ok) {
+        setError(result.message || "Failed to delete menu item")
+        return
       }
+
+      setMenuItems((prev) => prev.filter((entry) => entry.id !== deleteConfirm.id))
+      setDeleteConfirm(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
@@ -117,7 +123,6 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Menu Management</h2>
@@ -139,7 +144,6 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
         </div>
       </div>
 
-      {/* Error Alert */}
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -147,14 +151,12 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
         </Alert>
       )}
 
-      {/* Loading State */}
       {isLoading && (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       )}
 
-      {/* Empty State */}
       {!isLoading && menuItems.length === 0 && !error && (
         <div className="text-center py-12 border rounded-lg bg-muted/50">
           <p className="text-muted-foreground mb-4">No menu items found</p>
@@ -162,7 +164,6 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
         </div>
       )}
 
-      {/* Menu Items Table */}
       {!isLoading && menuItems.length > 0 && (
         <div className="border rounded-lg overflow-hidden">
           <Table>
@@ -172,7 +173,7 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
                 <TableHead>Category</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-20">Actions</TableHead>
+                <TableHead className="w-32">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -213,38 +214,50 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
                     </Button>
                   </TableCell>
                   <TableCell>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Delete Menu Item</DialogTitle>
-                          <DialogDescription>
-                            Are you sure you want to delete "{item.name}"? This
-                            action cannot be undone.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="flex gap-2 justify-end">
-                          <Button variant="outline">Cancel</Button>
-                          <Button
-                            variant="destructive"
-                            onClick={() => {
-                              setDeleteConfirm(item.id)
-                              handleDeleteItem()
-                            }}
-                            disabled={isDeleting}
-                          >
-                            {isDeleting && (
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            )}
-                            Delete
+                    <div className="flex items-center">
+                      <AddMenuItemModal
+                        isAdmin={isAdmin}
+                        mode="edit"
+                        item={item}
+                        onSuccess={fetchMenuItems}
+                        trigger={
+                          <Button variant="ghost" size="sm">
+                            <Edit2 className="h-4 w-4" />
                           </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                        }
+                      />
+                      <Dialog
+                        open={deleteConfirm?.id === item.id}
+                        onOpenChange={(open) => setDeleteConfirm(open ? item : null)}
+                      >
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Delete Menu Item</DialogTitle>
+                            <DialogDescription>
+                              Are you sure you want to delete "{item.name}"? This action cannot be undone.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+                              Cancel
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              onClick={handleDeleteItem}
+                              disabled={isDeleting}
+                            >
+                              {isDeleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                              Delete
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -253,7 +266,6 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
         </div>
       )}
 
-      {/* Stats */}
       {!isLoading && menuItems.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
           <div className="p-4 border rounded-lg">
@@ -263,13 +275,13 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
           <div className="p-4 border rounded-lg">
             <p className="text-sm text-muted-foreground">Available</p>
             <p className="text-2xl font-bold">
-              {menuItems.filter((i) => i.isAvailable).length}
+              {menuItems.filter((item) => item.isAvailable).length}
             </p>
           </div>
           <div className="p-4 border rounded-lg">
             <p className="text-sm text-muted-foreground">Hidden</p>
             <p className="text-2xl font-bold">
-              {menuItems.filter((i) => !i.isAvailable).length}
+              {menuItems.filter((item) => !item.isAvailable).length}
             </p>
           </div>
         </div>
