@@ -87,14 +87,17 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 -- Insert Default Menu Items
 INSERT OR IGNORE INTO menu_items (id, name, description, price, category, image_url) VALUES
 (1, 'Classic Espresso', 'A rich, crema-topped double shot of espresso', 149.00, 'Espresso', 'https://images.unsplash.com/photo-1510707577641-ae4c63189e8e?w=400&h=400&fit=crop'),
-(2, 'Cappuccino', 'Espresso with steamed milk and velvety foam', 199.00, 'Espresso', 'https://images.unsplash.com/photo-1517668808822-9ebb02ae2a0e?w=400&h=400&fit=crop'),
-(3, 'Café Latte', 'Smooth espresso with creamy steamed milk', 179.00, 'Espresso', 'https://images.unsplash.com/photo-1542992015-4bd106f778b6?w=400&h=400&fit=crop'),
-(4, 'Americano', 'Espresso diluted with hot water for a lighter taste', 159.00, 'Espresso', 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=400&fit=crop'),
-(5, 'Pour Over', 'Hand-crafted single origin coffee', 229.00, 'Brewed', 'https://images.unsplash.com/photo-1599639957043-966dccb16fc5?w=400&h=400&fit=crop'),
-(6, 'French Press', 'Full-bodied coffee steeped to perfection', 189.00, 'Brewed', 'https://images.unsplash.com/photo-1564890369879-500dee3b4721?w=400&h=400&fit=crop'),
-(7, 'Caramel Macchiato', 'Vanilla, milk, espresso, and caramel drizzle', 249.00, 'Specialty', 'https://images.unsplash.com/photo-1544432415-a9fc17eacb64?w=400&h=400&fit=crop'),
-(8, 'Mocha', 'Espresso with chocolate and steamed milk', 229.00, 'Specialty', 'https://images.unsplash.com/photo-1578880218455-da1d0524ef10?w=400&h=400&fit=crop'),
-(9, 'Honey Lavender Latte', 'Floral lavender with local honey and espresso', 269.00, 'Specialty', 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=400&fit=crop'),
-(10, 'Cold Brew', 'Smooth, slow-steeped for 20 hours', 189.00, 'Cold', 'https://images.unsplash.com/photo-1517638924702-92b37c16a6a9?w=400&h=400&fit=crop'),
-(11, 'Iced Latte', 'Chilled espresso with cold milk over ice', 199.00, 'Cold', 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=400&fit=crop'),
-(12, 'Nitro Cold Brew', 'Creamy, nitrogen-infused cold brew on tap', 259.00, 'Cold', 'https://as1.ftcdn.net/v2/jpg/06/03/07/18/1000_F_603071804_WhBPAku4L5meUBVVGYdwHEV8Z5PIC4N4.jpg');
+(2, 'Cappuccino', 'Espresso with steamed milk and velvety foam', 199.00, 'Espresso', 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=400&fit=crop'),
+(3, 'Café Latte', 'Smooth espresso with creamy steamed milk', 179.00, 'Espresso', 'https://images.unsplash.com/photo-1521302080371-df63bf2c6b6d?w=400&h=400&fit=crop'),
+(4, 'Americano', 'Espresso diluted with hot water for a lighter taste', 159.00, 'Espresso', 'https://images.unsplash.com/photo-1498804103079-a6351b050096?w=400&h=400&fit=crop'),
+
+(5, 'Pour Over', 'Hand-crafted single origin coffee', 229.00, 'Brewed', 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400&h=400&fit=crop'),
+(6, 'French Press', 'Full-bodied coffee steeped to perfection', 189.00, 'Brewed', 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=400&fit=crop'),
+
+(7, 'Caramel Macchiato', 'Vanilla, milk, espresso, and caramel drizzle', 249.00, 'Specialty', 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=400&fit=crop'),
+(8, 'Mocha', 'Espresso with chocolate and steamed milk', 229.00, 'Specialty', 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400&h=400&fit=crop'),
+(9, 'Honey Lavender Latte', 'Floral lavender with local honey and espresso', 269.00, 'Specialty', 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop'),
+
+(10, 'Cold Brew', 'Smooth, slow-steeped for 20 hours', 189.00, 'Cold', 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=400&fit=crop'),
+(11, 'Iced Latte', 'Chilled espresso with cold milk over ice', 199.00, 'Cold', 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=400&h=400&fit=crop'),
+(12, 'Nitro Cold Brew', 'Creamy, nitrogen-infused cold brew on tap', 259.00, 'Cold', 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&h=400&fit=crop');
