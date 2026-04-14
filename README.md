@@ -1,6 +1,6 @@
 # ☕ Coffee Shop Application
 
-A modern, full-stack coffee shop management application built with Next.js, React, TypeScript, and SQLite.
+A modern, full-stack coffee shop management application built with Next.js, React, TypeScript, FastAPI, and SQLite.
 
 ## 📋 Quick Start (3 Steps)
 
@@ -11,7 +11,9 @@ npm install
 # 2. Setup database
 npm run db:setup
 
-# 3. Start development server
+# 3. Start FastAPI and Next.js development servers
+pip install -r backend/requirements.txt
+npm run backend:dev
 npm run dev
 ```
 
@@ -24,6 +26,7 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 ### Prerequisites
 
 - **Node.js** 18 or higher
+- **Python** 3.10 or higher
 - **npm** or **pnpm** package manager
 - **Git** for cloning the repository
 - ~500MB disk space for dependencies and database
@@ -50,8 +53,8 @@ pnpm install
 ```
 
 This installs all required packages:
-- React 18
-- Next.js 14
+- React 19
+- Next.js 16
 - TypeScript
 - Tailwind CSS
 - Radix UI components
@@ -79,19 +82,36 @@ Expected output:
   ✓ Creating tables from schema...
 
 👥 Seeding users...
-  ✓ admin@example.com
+  ✓ admin@gmail.com
   ✓ user@gmail.com
 
 ✅ Database setup completed successfully!
 
 📋 Test Credentials:
-  admin@example.com / admin123
+  admin@gmail.com / admin123
   user@gmail.com / password123
 
 ✓ Verification passed
 ```
 
-### Step 4: Start Development Server
+### Step 4: Start FastAPI Backend
+
+```bash
+pip install -r backend/requirements.txt
+npm run backend:dev
+```
+
+Expected output:
+```
+Uvicorn running on http://0.0.0.0:8000
+```
+
+The frontend uses `.env.local`:
+```
+NEXT_PUBLIC_PYTHON_API_URL=http://localhost:8000
+```
+
+### Step 5: Start Next.js Development Server
 
 ```bash
 npm run dev
@@ -101,14 +121,14 @@ Expected output:
 ```
 > next dev
 
-  ▲ Next.js 14.0.0
+  ▲ Next.js 16.1.6
   - Local:        http://localhost:3000
   - Environments: .env.local
 
 ✓ Ready in 2.5s
 ```
 
-### Step 5: Open in Browser
+### Step 6: Open in Browser
 
 Navigate to: **http://localhost:3000**
 
@@ -120,7 +140,7 @@ You should see the Coffee Shop home page.
 
 ### Admin Account
 ```
-Email:    admin@example.com
+Email:    admin@gmail.com
 Password: admin123
 ```
 Grants access to: Admin Panel, Menu Management, Order Management
@@ -174,7 +194,7 @@ Click "Sign Up" to create your own account with custom credentials.
 ```
 coffee-shop-app/
 ├── app/                          # Next.js app directory
-│   ├── api/                      # API routes
+│   ├── api/                      # Legacy/internal Next.js API routes
 │   │   ├── auth/                # Authentication endpoints
 │   │   ├── menu/                # Menu management API
 │   │   └── orders/              # Order processing API
@@ -203,6 +223,7 @@ coffee-shop-app/
 │   └── modals-context.tsx        # Modal visibility states
 │
 ├── lib/                          # Utilities and services
+│   ├── api-client.ts             # FastAPI base URL helper
 │   ├── db.ts                     # Database connection
 │   ├── utils.ts                  # Helper functions
 │   ├── types/
@@ -223,6 +244,10 @@ coffee-shop-app/
 │   └── setup-admin.js           # Admin user setup
 │
 ├── public/                       # Static files
+├── backend/                      # FastAPI backend replacing PHP endpoints
+│   ├── main.py                   # Python API service
+│   ├── requirements.txt          # Python dependencies
+│   └── README.md                 # Backend run notes
 ├── styles/                       # Additional styles
 ├── package.json                  # Dependencies
 ├── tsconfig.json                 # TypeScript config
@@ -256,6 +281,7 @@ All tables include timestamps and proper constraints.
 ### Development
 ```bash
 npm run dev          # Start development server (http://localhost:3000)
+npm run backend:dev  # Start FastAPI backend (http://localhost:8000)
 npm run build        # Build for production
 npm start            # Run production build
 npm run lint         # Run ESLint
@@ -275,7 +301,7 @@ npm run db:reset     # Delete and recreate database
 ### 1. Test Login
 1. Open http://localhost:3000
 2. Click "Login" button
-3. Enter: `admin@example.com` / `admin123`
+3. Enter: `admin@gmail.com` / `admin123`
 4. Should see "⚙️ Admin Panel" link in header
 
 ### 2. Test Admin Panel
@@ -333,7 +359,7 @@ npm run dev -- -p 3001
 npm run db:reset
 npm run db:setup
 
-# Should show: admin@example.com / admin123
+# Should show: admin@gmail.com / admin123
 ```
 
 ### Issue: "Module not found" errors
@@ -353,7 +379,7 @@ npm run dev
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@example.com | admin123 |
+| Admin | admin@gmail.com | admin123 |
 | User | user@gmail.com | password123 |
 
 ⚠️ **Note**: These are demo credentials only. Change in production.
@@ -364,11 +390,11 @@ npm run dev
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 18, TypeScript, Next.js 14 |
+| Frontend | React 19, TypeScript, Next.js 16 |
 | Styling | Tailwind CSS, Radix UI |
 | Icons | Lucide React |
 | Forms | React Hook Form |
-| Backend | Next.js API Routes |
+| Backend | FastAPI |
 | Database | SQLite 3 (better-sqlite3) |
 | Build | Vite/esbuild (Next.js native) |
 
@@ -376,13 +402,28 @@ npm run dev
 
 ## 📝 Key Files Explained
 
+### `backend/main.py`
+FastAPI backend:
+- Auth endpoints
+- Menu CRUD
+- Order creation
+- Contact form persistence
+- SQLite initialization from `database/schema.sql`
+
+### `lib/api-client.ts`
+Frontend API helper:
+- Reads `NEXT_PUBLIC_PYTHON_API_URL`
+- Builds FastAPI request URLs
+
 ### `app/api/auth/login/route.ts`
+Legacy/internal Next.js login route:
 Handles user login:
 - Validates email/password
 - Returns user data and token
 - Admin role included in response
 
 ### `app/api/menu/route.ts`
+Legacy/internal Next.js menu route:
 Handles menu operations:
 - GET: Retrieve menu items (with optional category filter)
 - POST: Add new menu item (admin only)
@@ -390,6 +431,7 @@ Handles menu operations:
 - DELETE: Remove menu item (admin only)
 
 ### `app/api/orders/route.ts`
+Legacy/internal Next.js order route:
 Handles order creation:
 - Validates customer and order data
 - Creates/updates customer record
@@ -442,6 +484,8 @@ Before deploying to production:
 
 3. **Database preparation**
    ```bash
+   pip install -r backend/requirements.txt
+   uvicorn backend.main:app --host 0.0.0.0 --port 8000
    npm run build
    npm run db:setup  # On production server
    ```
@@ -449,7 +493,7 @@ Before deploying to production:
 4. **Environment variables**
    ```bash
    # Create .env.local
-   NEXT_PUBLIC_API_URL=https://yourdomain.com
+   NEXT_PUBLIC_PYTHON_API_URL=https://your-api-domain.com
    DATABASE_PATH=/path/to/database
    ```
 
@@ -523,10 +567,11 @@ To add features:
 
 After setup, verify everything works:
 
+- [ ] `npm run backend:dev` starts FastAPI without errors
 - [ ] `npm run dev` starts without errors
 - [ ] Browser opens to http://localhost:3000
 - [ ] Can see menu items
-- [ ] Can login with admin@example.com / admin123
+- [ ] Can login with admin@gmail.com / admin123
 - [ ] See "⚙️ Admin Panel" link in header
 - [ ] Can access admin panel
 - [ ] Can logout

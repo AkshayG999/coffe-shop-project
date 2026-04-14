@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { MenuItem } from "@/lib/types/menu"
+import { apiUrl } from "@/lib/api-client"
 import { AddMenuItemModal } from "./add-menu-item-modal"
 
 interface MenuManagementPageProps {
@@ -25,7 +26,7 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
     setError(null)
 
     try {
-      const response = await fetch("/api/menu?category=all&includeUnavailable=true")
+      const response = await fetch(apiUrl("/api/menu?category=all&includeUnavailable=true"))
       const data = await response.json()
 
       if (data.success) {
@@ -63,7 +64,7 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
     setError(null)
 
     try {
-      const response = await fetch(`/api/menu/${itemId}`, {
+      const response = await fetch(apiUrl(`/api/menu/${itemId}`), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isAvailable: !item.isAvailable }),
@@ -97,7 +98,7 @@ export function MenuManagementPage({ isAdmin = false }: MenuManagementPageProps)
     setError(null)
 
     try {
-      const response = await fetch(`/api/menu/${deleteConfirm.id}`, {
+      const response = await fetch(apiUrl(`/api/menu/${deleteConfirm.id}`), {
         method: "DELETE",
       })
 

@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/contexts/auth-context"
 import { useEffect, useState } from "react"
-import { AlertCircle, LogIn } from "lucide-react"
+import { AlertCircle, ArrowLeft, LogIn } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -34,6 +34,12 @@ export default function AdminPage() {
     return (
       <main className="min-h-screen bg-background">
         <div className="container mx-auto py-8 px-4">
+          <Button asChild variant="outline" className="mb-4 gap-2">
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Link>
+          </Button>
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -68,6 +74,12 @@ export default function AdminPage() {
     return (
       <main className="min-h-screen bg-background">
         <div className="container mx-auto py-8 px-4">
+          <Button asChild variant="outline" className="mb-4 gap-2">
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Link>
+          </Button>
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -92,7 +104,13 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Button asChild variant="outline" className="w-fit gap-2">
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Link>
+          </Button>
           <p className="text-sm text-muted-foreground">
             Logged in as: <span className="font-medium text-foreground">{user.name}</span> (Admin)
           </p>

@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, ReactNode, useEffect } from "react"
+import { apiUrl } from "@/lib/api-client"
 
 export type User = {
   id: string
@@ -89,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(apiUrl("/api/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -119,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await fetch("/api/auth/signup", {
+      const response = await fetch(apiUrl("/api/auth/signup"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
@@ -151,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = localStorage.getItem(AUTH_TOKEN_KEY)
       if (token) {
         try {
-          await fetch("/api/auth/logout", {
+          await fetch(apiUrl("/api/auth/logout"), {
             method: "POST",
             headers: {
               Authorization: `Bearer ${token}`,

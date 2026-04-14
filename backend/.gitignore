@@ -1,0 +1,39 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Test and coverage output
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Type checker caches
+.mypy_cache/
+.ruff_cache/
+.pyright/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Logs and runtime files
+*.log
+*.pid
+
+# Local SQLite files if the backend is run from this directory
+*.db
+*.db-shm
+*.db-wal
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/

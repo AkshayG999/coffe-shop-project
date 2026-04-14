@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from "@/components/ui/select"
 import { CreateMenuItemDTO, MENU_CATEGORIES, MenuItem } from "@/lib/types/menu"
+import { apiUrl } from "@/lib/api-client"
 
 interface FormErrors {
   name?: string
@@ -146,7 +147,7 @@ export function AddMenuItemModal({
     setSuccessMessage(null)
 
     try {
-      const response = await fetch(mode === "edit" && item ? `/api/menu/${item.id}` : "/api/menu", {
+      const response = await fetch(apiUrl(mode === "edit" && item ? `/api/menu/${item.id}` : "/api/menu"), {
         method: mode === "edit" ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",

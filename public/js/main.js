@@ -392,8 +392,13 @@ function handleCheckout(e) {
         };
     }
     
-    // Send to PHP backend
+    // Send to FastAPI backend
     submitOrder(orderData);
+}
+
+function apiUrl(path) {
+    const baseUrl = (window.COFFEE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+    return `${baseUrl}${path}`;
 }
 
 async function submitOrder(orderData) {
@@ -402,7 +407,7 @@ async function submitOrder(orderData) {
     placeOrderBtn.textContent = 'Processing...';
     
     try {
-        const response = await fetch('/api/orders.php', {
+        const response = await fetch(apiUrl('/api/orders'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -459,7 +464,7 @@ async function handleContact(e) {
     const data = Object.fromEntries(formData);
     
     try {
-        const response = await fetch('/api/contact.php', {
+        const response = await fetch(apiUrl('/api/contact'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

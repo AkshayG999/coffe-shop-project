@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useCart, type MenuItem } from "@/contexts/cart-context"
 import { useScroll } from "@/contexts/scroll-context"
+import { apiUrl } from "@/lib/api-client"
 
 const categories = ["All", "Espresso", "Brewed", "Specialty", "Cold"]
 
@@ -18,7 +19,7 @@ export function MenuSection() {
   const { addItem } = useCart()
   const { menuRef } = useScroll()
 
-  // Fetch menu items from PHP API
+  // Fetch menu items from FastAPI backend
   useEffect(() => {
     const fetchMenu = async () => {
       try {
@@ -26,7 +27,7 @@ export function MenuSection() {
         setError(null)
         
         const category = activeCategory === "All" ? "all" : activeCategory
-        const response = await fetch(`/api/menu?category=${category}`)
+        const response = await fetch(apiUrl(`/api/menu?category=${category}`))
         
         if (!response.ok) {
           throw new Error('Failed to fetch menu')

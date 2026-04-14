@@ -9,6 +9,7 @@ import { useCart } from "@/contexts/cart-context"
 import { useAuth } from "@/contexts/auth-context"
 import { useOrders } from "@/contexts/orders-context"
 import { cn } from "@/lib/utils"
+import { apiUrl } from "@/lib/api-client"
 
 type OrderType = "pickup" | "delivery"
 type PaymentMethod = "cod" | "upi" | "netbanking" | "card"
@@ -158,8 +159,8 @@ export function CheckoutModal() {
         })
       }
 
-      // Send to Next.js API
-      const response = await fetch('/api/orders', {
+      // Send to FastAPI backend
+      const response = await fetch(apiUrl('/api/orders'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
